@@ -16,16 +16,19 @@ spec:
       description: destination image to promote to
       type: string
       default: {{ include "image.preprod-url" . }}
-    - name: image-tag
+    - name: source-image-tag
+      type: string
+      default: latest
+    - name: destination-image-tag
       type: string
       default: latest
   tasks:
     - name: skopeo-copy
       params:
         - name: srcImageURL
-          value: 'docker://$(params.source-image):latest'
+          value: 'docker://$(params.source-image):$(params.source-image-tag)'
         - name: destImageURL
-          value: 'docker://$(params.destination-image):$(params.image-tag)'
+          value: 'docker://$(params.destination-image):$(params.destination-image-tag)'
         - name: srcTLSverify
           value: 'false'
         - name: destTLSverify
