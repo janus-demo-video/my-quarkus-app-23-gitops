@@ -1,0 +1,40 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: {{ .Values.app.name }}-promote
+  labels:
+    type: pipeline
+    backstage.io/kubernetes-id: {{ .Values.app.name }}
+spec:
+  params:
+    - name: source-image
+      description: source image to promote
+      type: string
+      default: {{ include "image.dev-url" . }}
+    - name: destination-image
+      description: destination image to promote to
+      type: string
+      default: {{ include "image.preprod-url" . }}
+    - name: image-tag
+      type: string
+      default: latest
+  tasks:
+    - name: skopeo-copy
+      params:
+        - name: srcImageURL
+          value: 'docker://$(params.source-image):latest'
+        - name: destImageURL
+          value: 'docker://$(params.destination-image):$(params.image-tag)'
+        - name: srcTLSverify
+          value: 'false'
+        - name: destTLSverify
+          value: 'false'
+      taskRef:
+        kind: Task
+        name: skopeo-copy
+      workspaces:
+        - name: images-url
+          workspace: images-url
+  workspaces:
+    - name: images-url
